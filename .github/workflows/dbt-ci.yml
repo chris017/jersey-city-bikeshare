@@ -1,0 +1,69 @@
+name: dbt CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "jersey_city_bikeshare_dbt/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "jersey_city_bikeshare_dbt/**"
+  workflow_dispatch: {}
+
+jobs:
+  dbt-run-and-test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: jersey_city_bikeshare_dbt
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt
+        run: pip install dbt-snowflake
+
+      - name: Write Snowflake private key to file
+        run: |
+          mkdir -p ~/.dbt
+          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > ~/.dbt/snowflake_key.p8
+          chmod 600 ~/.dbt/snowflake_key.p8
+
+      - name: Write profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << EOF
+          jersey_city_bikeshare:
+            target: ci
+            outputs:
+              ci:
+                type: snowflake
+                account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: ${{ secrets.SNOWFLAKE_USER }}
+                private_key_path: /home/runner/.dbt/snowflake_key.p8
+                role: ${{ secrets.SNOWFLAKE_ROLE }}
+                database: ${{ secrets.SNOWFLAKE_DATABASE }}
+                warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+                schema: raw
+                threads: 4
+          EOF
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: dbt debug
+        run: dbt debug --target ci
+
+      - name: dbt run
+        run: dbt run --target ci
+
+      - name: dbt test
+        run: dbt test --target ci
