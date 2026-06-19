@@ -1,0 +1,35 @@
+# Virtuelle Umgebungen
+dbt-env/
+venv/
+.venv/
+
+# Sonstiges, nicht zum Projekt gehörend
+logs/
+Database
+
+# dbt
+jersey_city_bikeshare_dbt/target/
+jersey_city_bikeshare_dbt/dbt_packages/
+jersey_city_bikeshare_dbt/logs/
+jersey_city_bikeshare_dbt/.env
+jersey_city_bikeshare_dbt/seeds_raw/
+jersey_city_bikeshare_dbt/notebook/.ipynb_checkpoints/
+
+# Airflow / Astro
+jersey_city_bikeshare_airflow/.astro/
+jersey_city_bikeshare_airflow/airflow.cfg
+jersey_city_bikeshare_airflow/airflow.db
+jersey_city_bikeshare_airflow/logs/
+jersey_city_bikeshare_airflow/.env
+jersey_city_bikeshare_airflow/include/dbt_profiles/snowflake_key.p8
+jersey_city_bikeshare_airflow/include/dbt_profiles/profiles.yml
+jersey_city_bikeshare_airflow/include/dbt_profiles/profiles.ymly
+jersey_city_bikeshare_airflow/include/jersey_city_bikeshare_dbt/target/
+jersey_city_bikeshare_airflow/include/jersey_city_bikeshare_dbt/dbt_packages/
+jersey_city_bikeshare_airflow/include/jersey_city_bikeshare_dbt/logs/
+
+# Allgemein
+.DS_Store
+__pycache__/
+*.pyc
+.ipynb_checkpoints/jersey_city_bikeshare_dbt/*.csv

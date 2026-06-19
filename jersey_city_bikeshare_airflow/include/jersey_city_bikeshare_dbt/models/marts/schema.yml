@@ -1,0 +1,66 @@
+version: 2
+
+models:
+  - name: dim_stations
+    description: "Dimensionstabelle aller Citibike-Stationen (Start- und Endpunkte vereinheitlicht)"
+    columns:
+      - name: station_id
+        description: "Eindeutige ID der Station"
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_dates
+    description: "Datums-Dimension mit Wochentag und Wochenend-Kennzeichnung"
+    columns:
+      - name: date_day
+        description: "Kalendertag"
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_trips
+    description: "Fact-Tabelle aller Fahrten (eine Zeile pro Trip)"
+    columns:
+      - name: trip_id
+        description: "Generierter Surrogate Key pro Fahrt"
+        tests:
+          - unique
+          - not_null
+      - name: start_station_id
+        description: "Foreign Key zur Start-Station"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_stations')
+                field: station_id
+      - name: end_station_id
+        description: "Foreign Key zur End-Station"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_stations')
+                field: station_id
+      - name: date_day
+        description: "Foreign Key zur Datums-Dimension"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_dates')
+                field: date_day
+  - name: agg_daily_summary
+    description: "Tagesaggregation aller Fahrten: Gesamtzahl, genutzte Bikes, Stationen, Dauer"
+    columns:
+      - name: date_day
+        tests:
+          - unique
+          - not_null
+
+  - name: agg_trips_per_station_per_day
+    description: "Anzahl gestarteter/beendeter Fahrten pro Station und Tag"
+
+  - name: agg_trips_per_user_type
+    description: "Fahrtstatistiken aufgeschlüsselt nach Nutzertyp (Subscriber/Customer) pro Tag"

@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: raw
+    database: jersey_city_bikeshare
+    schema: raw
+    tables:
+      - name: raw_citibike_trips
+        description: "Rohdaten aus dem Citibike Jersey City System, November 2018"
+        columns:
+          - name: tripduration
+            description: "Fahrtdauer in Sekunden"
+          - name: starttime
+            description: "Startzeitpunkt der Fahrt"
+          - name: stoptime
+            description: "Endzeitpunkt der Fahrt"
+          - name: bikeid
+            description: "Eindeutige ID des Fahrrads"
