@@ -52,7 +52,7 @@ jobs:
                 role: ${{ secrets.SNOWFLAKE_ROLE }}
                 database: ${{ secrets.SNOWFLAKE_DATABASE }}
                 warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-                schema: raw
+                schema: staging
                 threads: 4
           EOF
 
