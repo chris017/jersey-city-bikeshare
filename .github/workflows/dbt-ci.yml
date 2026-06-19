@@ -34,7 +34,7 @@ jobs:
       - name: Write Snowflake private key to file
         run: |
           mkdir -p ~/.dbt
-          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > ~/.dbt/snowflake_key.p8
+          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" | base64 -d > ~/.dbt/snowflake_key.p8
           chmod 600 ~/.dbt/snowflake_key.p8
 
       - name: Write profiles.yml
