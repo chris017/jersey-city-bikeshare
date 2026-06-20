@@ -14,6 +14,39 @@ real-time Kafka streaming pipeline for IoT-style bike status events.
 **Batch data source:** [Citibike System Data](https://s3.amazonaws.com/tripdata/index.html) (Jersey City), August 2018 – March 2019 (~230,000 trips).
 **Streaming data source:** simulated bike status events (producer/consumer pattern), since no public real-time feed with trip-level granularity exists for this system.
 
+## Analytics Findings
+
+**Reference architecture & findings (PDF, 8 pages):** [`jersey_city_bikeshare_findings_architecture.pdf`](https://github.com/chris017/jersey-city-bikeshare-dbt/blob/main/notebook/jersey_city_bikeshare_findings_architecture.pdf)
+— covers the full architecture diagram, pipeline flow, CI/CD setup, spatial/temporal charts, and business recommendations in one document.
+
+**Interactive analysis with all charts and maps:** [`jersey_city_bikeshare_insights.ipynb`](https://github.com/chris017/jersey-city-bikeshare-dbt/blob/main/notebook/jersey_city_bikeshare_insights.ipynb)
+
+### Two distinct user behaviors emerge clearly from the data
+
+**Subscribers (~95% of all trips)** behave like commuters:
+- Two sharp activity peaks on weekdays: 7–9 AM and 5–7 PM
+- Short, tightly clustered trip durations (~4–5 minutes)
+- Almost exclusively stay within the Jersey City system (cross-system rate: 0.026%)
+
+**Customers (~5% of all trips)** behave like leisure/tourist users:
+- Peak activity on Sunday, 10 AM–3 PM, with a secondary Saturday evening peak
+- Longer, more widely distributed trip durations
+- ~9x more likely to end a trip outside Jersey City (cross-system rate: 0.23%)
+- Weekend trips account for ~41% of their volume (vs. ~18% for Subscribers)
+
+### Other findings
+- **Grove St PATH** is by far the busiest station (~7,000 trips start+end), consistent with its
+  role as a transit hub — further supporting the commuter hypothesis
+- A small number of stations are geographically located in Manhattan/Brooklyn (the Citibike network
+  is technically interconnected), but cross-system trips account for only 0.037% of all trips overall
+- ~0.03% of historical trips carry a known data-entry sentinel (`birth_year = 1888`), correctly
+  isolated by the quarantine layer rather than polluting downstream aggregates
+
+### Implication for pricing & marketing
+Subscriber offerings should target reliable short commutes — annual/monthly plans, station capacity
+at transit hubs during peak hours. Customer offerings should focus on weekend/leisure use — day
+passes, tourism marketing, and capacity planning at leisure locations on weekends.
+
 ## Architecture
 
 ```
@@ -133,30 +166,6 @@ no manual copying between the standalone dbt project and the orchestration layer
   tracking ingestion lag between event time and load time
 - **Latest-status aggregate**: a dbt model surfaces the most recent known state per station,
   the kind of query a live operations dashboard would run
-
-## Analytics Highlights
-
-Full analysis with all charts and maps: [`jersey_city_bikeshare_insights.ipynb`](https://github.com/chris017/jersey-city-bikeshare-dbt/blob/main/notebook/jersey_city_bikeshare_insights.ipynb)
-
-### Two distinct user behaviors emerge clearly from the data
-
-**Subscribers (~95% of all trips)** behave like commuters:
-- Two sharp activity peaks on weekdays: 7–9 AM and 5–7 PM
-- Short, tightly clustered trip durations (~4–5 minutes)
-- Almost exclusively stay within the Jersey City system (cross-system rate: 0.026%)
-
-**Customers (~5% of all trips)** behave like leisure/tourist users:
-- Peak activity on Sunday, 10 AM–3 PM, with a secondary Saturday evening peak
-- Longer, more widely distributed trip durations
-- ~9x more likely to end a trip outside Jersey City (cross-system rate: 0.23%)
-
-### Other findings
-- **Grove St PATH** is by far the busiest station (~7,000 trips start+end), consistent with its
-  role as a transit hub — further supporting the commuter hypothesis
-- A small number of stations are geographically located in Manhattan/Brooklyn (the Citibike network
-  is technically interconnected), but cross-system trips account for only 0.037% of all trips overall
-- ~0.03% of historical trips carry a known data-entry sentinel (`birth_year = 1888`), correctly
-  isolated by the quarantine layer rather than polluting downstream aggregates
 
 ## Running This Project
 
