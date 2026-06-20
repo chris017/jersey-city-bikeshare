@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: stg_citibike_trips_validated
+    description: "Alle Rohdaten-Zeilen mit angehängtem Validierungsstatus (validation_error). Basis für stg_citibike_trips und die Quarantäne."
+
+  - name: stg_citibike_trips
+    description: "Nur valide Fahrten (validation_error IS NULL). Quelle für alle Marts."
+
+  - name: stg_citibike_trips_quarantine
+    description: "Fahrten, die mindestens eine Validierungsregel verletzen (z.B. Sentinel-Geburtsjahr 1888, negative Dauer, fehlende Stationen). Werden bewusst NICHT in die Marts übernommen."
+    columns:
+      - name: validation_error
+        description: "Grund, warum die Zeile aussortiert wurde"
