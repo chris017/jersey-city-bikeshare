@@ -1,0 +1,76 @@
+name: Kafka Streaming Integration Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "jersey_city_bikeshare_streaming/**"
+  workflow_dispatch: {}
+
+jobs:
+  streaming-test:
+    runs-on: ubuntu-latest
+
+    services:
+      kafka:
+        image: apache/kafka:3.8.0
+        ports:
+          - 9092:9092
+        env:
+          KAFKA_NODE_ID: 1
+          KAFKA_PROCESS_ROLES: broker,controller
+          KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+          KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+          KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+    defaults:
+      run:
+        working-directory: jersey_city_bikeshare_streaming
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install kafka-python snowflake-connector-python python-dotenv cryptography
+
+      - name: Wait for Kafka to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if (echo > /dev/tcp/localhost/9092) >/dev/null 2>&1; then
+              echo "Kafka is up"
+              exit 0
+            fi
+            echo "Waiting for Kafka..."
+            sleep 2
+          done
+          echo "Kafka did not become ready in time"
+          exit 1
+
+      - name: Write Snowflake private key to file
+        run: |
+          mkdir -p ~/.dbt
+          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" | base64 -d > ~/.dbt/snowflake_key.p8
+          chmod 600 ~/.dbt/snowflake_key.p8
+
+      - name: Run producer (send a fixed number of test events)
+        run: python3 producer_ci.py
+
+      - name: Run consumer (drain topic, write to Snowflake)
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+          SNOWFLAKE_WAREHOUSE: ci_wh
+          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_PRIVATE_KEY_PATH: /home/runner/.dbt/snowflake_key.p8
+        run: python3 consumer_ci.py
