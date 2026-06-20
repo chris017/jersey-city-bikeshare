@@ -1,0 +1,3 @@
+[submodule "jersey_city_bikeshare_dbt"]
+	path = jersey_city_bikeshare_dbt
+	url = https://github.com/chris017/jersey-city-bikeshare-dbt.git
